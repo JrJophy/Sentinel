@@ -1,0 +1,13 @@
+flask
+requests
+beautifulsoup4
+tldextract
+validators
+PyMuPDF
+idna
+urllib3
+certifi
+chardet
+lxml
+pillow             # For image handling (PIL)
+pytesseract        # Python wrapper for Tesseract OCR
