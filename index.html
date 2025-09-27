@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Link Safety</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+    <style>
+        /*             --- ENHANCED 'LINKSAFE' CYBERPUNK THEME ---
+        */
+        :root {
+            --main-bg: #100a18; /* Very deep, dark purple/black */
+            --content-bg: #1c1328; /* Slightly lighter inner area background */
+            --card-bg: #241738; /* Darkest purple for floating elements */
+            --accent-color: #e540ff; /* Bright pink/purple for main actions */
+            --text-color: #ffffff;
+            --safe-color: #49cc90; /* Green checkmark */
+            --dangerous-color: #e65252; /* Red danger */
+            --suspicious-color: #f0ad4e; /* Yellow warning */
+        }
+
+        body {
+            background-color: var(--main-bg);
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        
+        /* New: Outer container for the main content area */
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: var(--content-bg); /* Lighter background for the inner content block */
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), 0 0 5px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(229, 64, 255, 0.1); /* Subtle neon glow */
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(229, 64, 255, 0.4); 
+        }
+        .card-body {
+            padding: 25px;
+        }
+        .header-title {
+            text-align: center;
+            font-size: 2.8rem;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); 
+        }
+        .header-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+        .btn-custom {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 15px rgba(229, 64, 255, 0.4);
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #b330cc;
+            color: var(--text-color);
+            box-shadow: 0 0 25px rgba(229, 64, 255, 0.8);
+        }
+        
+        /* Input Field Styling */
+        .form-control {
+            background-color: #2e2049; /* Darker input background */
+            color: var(--text-color);
+            border: 1px solid rgba(229, 64, 255, 0.3); 
+            border-radius: 8px 0 0 8px;
+            height: 50px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .form-control:focus {
+            background-color: #3b2857;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(229, 64, 255, 0.35);
+        }
+        .input-group-append .btn-custom {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            color: var(--text-color); 
+            margin-bottom: 20px;
+            font-weight: 500;
+            border-bottom: 2px solid rgba(229, 64, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* Result Box Styling (Mimicking the rows in the screenshot) */
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #332152; /* A shade lighter than the card */
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 5px solid rgba(229, 64, 255, 0.5);
+        }
+        .result-item span {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .result-item strong {
+            font-weight: 500;
+        }
+        
+        /* Status Icons */
+        .status-icon {
+            font-size: 1.5rem;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .status-icon.safe { color: var(--safe-color); text-shadow: 0 0 5px rgba(73, 204, 144, 0.5); }
+        .status-icon.dangerous { color: var(--dangerous-color); text-shadow: 0 0 5px rgba(230, 82, 82, 0.5); }
+        .status-icon.suspicious { color: var(--suspicious-color); text-shadow: 0 0 5px rgba(240, 173, 78, 0.5); }
+
+
+        /* Clear Button (Consolidated styling) */
+        .clear-btn {
+            background-color: var(--dangerous-color); 
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 10px 20px;
+            border: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(230, 82, 82, 0.3);
+        }
+        .clear-btn:hover {
+            background-color: #c90000;
+            box-shadow: 0 0 15px rgba(230, 82, 82, 0.6);
+            transform: scale(1.05);
+        }
+
+        /* Separator for "OR" */
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            margin: 25px 0;
+        }
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+        .separator:not(:empty)::before {
+            margin-right: .5em;
+        }
+        .separator:not(:empty)::after {
+            margin-left: .5em;
+        }
+
+        /* Dropzone Styling to mimic the upload area in the screenshot */
+        .dropzone-container {
+            text-align: center;
+            padding: 40px 20px;
+            border: 2px dashed rgba(229, 64, 255, 0.5);
+            background-color: #1a102b;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer; /* Indicate it's clickable */
+        }
+        .dropzone-container i {
+            font-size: 3rem;
+            color: rgba(229, 64, 255, 0.7);
+            margin-bottom: 10px;
+        }
+        .dropzone-container p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .dropzone-container a {
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+        .dropzone-container small {
+            display: block;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header-title">Check Link Safety</h1>
+        <p class="header-subtitle">Paste a link or upload a file to scan for potential threats.</p>
+
+        <div class="card">
+            <div class="card-body">
+                
+                <form id="urlForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="url" placeholder="Paste or type a link" required>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn-custom" id="checkLinkBtn">Check Link</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="separator">or</div>
+                
+                <div class="dropzone-container" id="dropzoneClick">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & drop a file here or <a href="#" id="browseLink">browse</a></p>
+                    <small>Supported file types: PDF, JPG, PNG</small>
+                    
+                    <input type="file" id="fileUploader" style="display: none;" accept=".pdf, image/*">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Scan Results</h5>
+                <div id="scanResults" class="result-container">
+                    </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="clear-btn" id="clearBtn">Clear All Results</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // --- MOCK DATA AND HELPER FUNCTIONS ---
+        
+        const scanResultsDiv = document.getElementById("scanResults");
+        const fileUploader = document.getElementById("fileUploader");
+        const checkLinkBtn = document.getElementById("checkLinkBtn");
+
+        // Helper function to create a result item with icon
+        function createResultItem(url, status, statusText, type = null) {
+            let iconClass, colorStyle, typeHtml = '';
+
+            if (status === 'Safe') {
+                iconClass = 'fas fa-check-circle';
+                colorStyle = 'var(--safe-color)';
+            } else if (status === 'Dangerous') {
+                iconClass = 'fas fa-exclamation-triangle';
+                colorStyle = 'var(--dangerous-color)';
+            } else { // Suspicious/Unknown
+                iconClass = 'fas fa-question-circle';
+                colorStyle = 'var(--suspicious-color)';
+            }
+            
+            if (type) {
+                typeHtml = `<small style="color: rgba(255, 255, 255, 0.5); display: block; margin-bottom: 3px;">Extracted from ${type}</small>`;
+            }
+
+            return `
+                <div class="result-item">
+                    <div>
+                        ${typeHtml}
+                        <small>${url}</small>
+                        <br>
+                        <span style="color: ${colorStyle};">${statusText}</span>
+                    </div>
+                    <span class="status-icon ${status.toLowerCase()}"><i class="${iconClass}"></i></span>
+                </div>
+            `;
+        }
+
+        // Mock analysis function for demonstration
+        function mockAnalyzeUrl(url) {
+            if (url.includes("safe") || url.includes("example.com")) {
+                return { url: url, status: 'Safe', statusText: 'Safe' };
+            } else if (url.includes("malicious") || url.includes("phishing")) {
+                return { url: url, status: 'Dangerous', statusText: 'Dangerous' };
+            } else {
+                return { url: url, status: 'Suspicious', statusText: 'Suspicious' };
+            }
+        }
+
+        function mockAnalyzeFile(fileName) {
+            // Mock file analysis returns a set of extracted URLs
+            if (fileName.includes("invoice") || fileName.includes("pdf")) {
+                 return [
+                    { url: 'https://verify.bank/login', status: 'Dangerous', statusText: 'Dangerous' },
+                    { url: 'https://example.com/legal.pdf', status: 'Safe', statusText: 'Safe' }
+                ];
+            } else {
+                return [{ url: 'https://clean-doc.com/image-link', status: 'Safe', statusText: 'Safe' }];
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // 1. Handle URL Analysis
+        document.getElementById("urlForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const url = document.getElementById("url").value;
+            
+            // Simulate loading
+            const originalText = checkLinkBtn.textContent;
+            checkLinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            checkLinkBtn.disabled = true;
+
+            setTimeout(() => {
+                const result = mockAnalyzeUrl(url);
+                scanResultsDiv.innerHTML += createResultItem(result.url, result.status, result.statusText);
+                
+                // Reset button
+                checkLinkBtn.textContent = originalText;
+                checkLinkBtn.disabled = false;
+                document.getElementById("url").value = ''; // Clear input field
+            }, 1500); // Simulate network latency
+        });
+
+
+        // 2. Handle File Upload Activation
+        document.getElementById("dropzoneClick").addEventListener("click", function(e) {
+            // Prevent the click event from the dropzone from bubbling up if clicking on the browse link itself (redundant but safe)
+            if (e.target.id !== 'browseLink') {
+                 fileUploader.click();
+            }
+        });
+        document.getElementById("browseLink").addEventListener("click", function(e) {
+            e.preventDefault(); // Prevent default link action
+            fileUploader.click();
+        });
+
+
+        // 3. Handle File Upload Processing
+        fileUploader.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Determine file type for display
+            const isPDF = file.type === 'application/pdf';
+            const isImage = file.type.startsWith('image');
+            const typeName = isPDF ? 'PDF' : (isImage ? 'Image' : 'File');
+            
+            const dropzone = document.querySelector('.dropzone-container');
+            const originalDropzoneHtml = dropzone.innerHTML;
+
+            // Simulate processing/loading in the dropzone
+            dropzone.innerHTML = `
+                <i class="fas fa-spinner fa-pulse" style="font-size: 3rem;"></i>
+                <p>Scanning **${file.name}** for links...</p>
+                <small>This may take a moment.</small>
+            `;
+
+            setTimeout(() => {
+                const extractedResults = mockAnalyzeFile(file.name);
+                
+                // Add an item for the file itself (optional: to clearly mark the start of results)
+                scanResultsDiv.innerHTML += `
+                    <div class="result-item" style="border-left: 5px solid var(--accent-color); background-color: #1a102b;">
+                        <small>File Uploaded: <strong>${file.name}</strong> (${typeName})</small>
+                    </div>
+                `;
+
+                // Add results for extracted URLs
+                extractedResults.forEach(result => {
+                    scanResultsDiv.innerHTML += createResultItem(result.url, result.status, result.statusText, file.name);
+                });
+                
+                // Reset dropzone
+                dropzone.innerHTML = originalDropzoneHtml;
+                fileUploader.value = ''; // Clear file input
+            }, 2000);
+        });
+
+
+        // 4. Clear all results
+        document.getElementById("clearBtn").addEventListener("click", function() {
+            scanResultsDiv.innerHTML = '';
+            document.getElementById("url").value = '';
+            fileUploader.value = '';
+        });
+    </script>
+</body>
+</html>
